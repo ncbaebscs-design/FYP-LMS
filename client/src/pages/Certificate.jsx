@@ -1,18 +1,19 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import axios from 'axios';
 import {
-    Award,
     Download,
     Share2,
     ArrowLeft,
+    Award,
     ShieldCheck,
     Calendar,
-    User,
-    BookOpen
+    User
 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
+import { toPng } from 'html-to-image';
+import { jsPDF } from 'jspdf';
 
 const Certificate = () => {
     const { courseId } = useParams();
@@ -21,6 +22,7 @@ const Certificate = () => {
     const [course, setCourse] = useState(null);
     const [enrollment, setEnrollment] = useState(null);
     const [loading, setLoading] = useState(true);
+    const certificateRef = useRef(null);
 
     useEffect(() => {
         const fetchData = async () => {
@@ -48,97 +50,220 @@ const Certificate = () => {
         fetchData();
     }, [courseId, navigate]);
 
-    const handleDownload = () => {
-        window.print(); // Simple way to "download" as PDF via print dialog
+    const handleDownload = async () => {
+        if (!certificateRef.current) return;
+
+        const toastId = toast.loading('Generating premium certificate...');
+
+        try {
+            // Wait for images and fonts to stabilize
+            await new Promise(resolve => setTimeout(resolve, 800));
+
+            const element = certificateRef.current;
+
+            // Capture as a ultra-high resolution PNG
+            const dataUrl = await toPng(element, {
+                quality: 1.0,
+                pixelRatio: 4, // 4x for extreme sharpness
+                cacheBust: true,
+                backgroundColor: '#ffffff',
+                style: {
+                    borderRadius: '0',
+                    margin: '0',
+                    padding: '0',
+                }
+            });
+
+            const img = new Image();
+            img.src = dataUrl;
+            await new Promise((resolve) => img.onload = resolve);
+
+            const ratio = img.width / img.height;
+            const pdfWidth = 297; // A4 Landscape
+            const pdfHeight = pdfWidth / ratio;
+
+            const pdf = new jsPDF({
+                orientation: 'landscape',
+                unit: 'mm',
+                format: [pdfWidth, pdfHeight]
+            });
+
+            pdf.addImage(dataUrl, 'PNG', 0, 0, pdfWidth, pdfHeight, undefined, 'SLOW');
+
+            const fileName = `Certificate-${user.name.replace(/\s+/g, '_')}.pdf`;
+            pdf.save(fileName);
+
+            toast.success('Premium certificate downloaded!', { id: toastId });
+        } catch (error) {
+            console.error('PDF Generation Error:', error);
+            toast.error('Failed to generate high-quality PDF.', { id: toastId });
+        }
     };
 
     if (loading) return (
         <div className="flex justify-center items-center min-h-[60vh]">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500"></div>
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-600"></div>
         </div>
     );
 
     return (
-        <div className="min-h-screen bg-gray-50 py-12 px-4 animate-in fade-in duration-700">
-            <div className="max-w-5xl mx-auto mb-8 flex justify-between items-center print:hidden">
+        <div className="min-h-screen bg-neutral-100 py-16 px-4">
+            {/* Header / Actions */}
+            <div className="max-w-5xl mx-auto mb-12 flex justify-between items-center print:hidden">
                 <button
                     onClick={() => navigate('/dashboard')}
-                    className="flex items-center gap-2 text-gray-500 hover:text-gray-900 font-bold transition-colors"
+                    className="flex items-center gap-2 text-neutral-500 hover:text-neutral-900 font-bold transition-all group"
                 >
-                    <ArrowLeft size={20} /> Back to Dashboard
+                    <ArrowLeft size={20} className="group-hover:-translate-x-1 transition-transform" />
+                    <span>Back to Dashboard</span>
                 </button>
                 <div className="flex gap-4">
                     <button
                         onClick={handleDownload}
-                        className="bg-gray-900 text-white px-6 py-3 rounded-xl font-bold hover:bg-orange-600 transition-all flex items-center gap-2 shadow-xl shadow-gray-200"
+                        className="bg-neutral-900 text-white px-8 py-4 rounded-2xl font-bold hover:bg-orange-600 transition-all flex items-center gap-3 shadow-2xl shadow-neutral-300 transform active:scale-95"
                     >
-                        <Download size={18} /> DOWNLOAD PDF
+                        <Download size={20} />
+                        <span>DOWNLOAD PDF</span>
                     </button>
-                    <button className="bg-white border border-gray-100 text-gray-700 px-6 py-3 rounded-xl font-bold hover:bg-gray-50 transition-all flex items-center gap-2">
-                        <Share2 size={18} /> SHARE
+                    <button className="bg-white border border-neutral-200 text-neutral-700 px-8 py-4 rounded-2xl font-bold hover:bg-neutral-50 transition-all flex items-center gap-3 shadow-sm transform active:scale-95">
+                        <Share2 size={20} />
+                        <span>SHARE</span>
                     </button>
                 </div>
             </div>
 
-            {/* Certificate Card */}
-            <div className="max-w-4xl mx-auto bg-white p-1 md:p-2 rounded-[2.5rem] shadow-2xl overflow-hidden relative border border-gray-100">
-                {/* Decorative Borders */}
-                <div className="absolute inset-4 border-4 border-orange-500/10 rounded-[2rem] pointer-events-none"></div>
-                <div className="absolute inset-8 border border-orange-500/20 rounded-[1.5rem] pointer-events-none"></div>
+            {/* Premium Certificate Content */}
+            <div
+                ref={certificateRef}
+                className="max-w-[1000px] aspect-[1.414/1] mx-auto bg-white shadow-[0_40px_100px_-20px_rgba(0,0,0,0.15)] relative overflow-hidden"
+                style={{
+                    background: 'radial-gradient(circle at center, #ffffff 0%, #fdfdfd 100%)',
+                }}
+            >
+                {/* Subtle Texture Layer */}
+                <div
+                    className="absolute inset-0 opacity-[0.03] pointer-events-none"
+                    style={{
+                        backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")`,
+                    }}
+                />
 
-                <div className="relative p-12 md:p-20 bg-white rounded-[2rem] flex flex-col items-center text-center">
-                    {/* Logo/Icon */}
-                    <div className="w-24 h-24 bg-orange-600 rounded-3xl flex items-center justify-center text-white mb-10 shadow-2xl rotate-3">
-                        <Award size={48} />
+                {/* Main Decorative Border (SVG for precision) */}
+                <div className="absolute inset-0 border-[24px] border-transparent p-4">
+                    <div className="absolute inset-0 border-[1px] border-orange-500/30 m-4" />
+                    <div className="absolute inset-0 border-[0.5px] border-neutral-300 m-6" />
+
+
+                    {/* Corner Ornaments */}
+                    <div className="absolute top-6 left-6 w-12 h-12 border-t-[3px] border-l-[3px] border-orange-500" />
+                    <div className="absolute top-6 right-6 w-12 h-12 border-t-[3px] border-r-[3px] border-orange-500" />
+                    <div className="absolute bottom-6 left-6 w-12 h-12 border-b-[3px] border-l-[3px] border-orange-500" />
+                    <div className="absolute bottom-6 right-6 w-12 h-12 border-b-[3px] border-r-[3px] border-orange-500" />
+
+                    {/* Intricate SVG Border Pattern */}
+                    <svg className="absolute inset-0 w-full h-full opacity-10 pointer-events-none" viewBox="0 0 1000 707">
+                        <rect x="40" y="40" width="920" height="627" fill="none" stroke="#F97316" strokeWidth="0.5" strokeDasharray="5 5" />
+                        <circle cx="40" cy="40" r="12" fill="none" stroke="#F97316" strokeWidth="1" />
+                        <circle cx="960" cy="40" r="12" fill="none" stroke="#F97316" strokeWidth="1" />
+                        <circle cx="40" cy="667" r="12" fill="none" stroke="#F97316" strokeWidth="1" />
+                        <circle cx="960" cy="667" r="12" fill="none" stroke="#F97316" strokeWidth="1" />
+                    </svg>
+                </div>
+
+                {/* Certificate Text Layer */}
+                <div className="relative h-full flex flex-col items-center justify-between px-24 py-24 text-center">
+                    {/* Badge/Icon Section */}
+                    <div className="flex flex-col items-center gap-4">
+                        <div className="w-32 h-32 flex items-center justify-center translate-y-2">
+                            <img
+                                src="/GraduationCap.png"
+                                alt="Certification Icon"
+                                className="w-24 h-24 object-contain drop-shadow-xl saturate-150"
+                                crossOrigin="anonymous"
+                            />
+                        </div>
+
+                        <div>
+                            <h1 className="text-neutral-400 font-extrabold text-[10px] uppercase tracking-[0.6em] mb-2">
+                                Certificate of Achievement
+                            </h1>
+                            <p
+                                className="italic text-lg text-neutral-500"
+                                style={{ fontFamily: "'Spectral', serif" }}
+                            >
+                                This document is to formally certify that
+                            </p>
+                        </div>
                     </div>
 
-                    <h1 className="text-gray-400 font-black text-xs uppercase tracking-[0.4em] mb-4">Certificate of Completion</h1>
-                    <p className="text-gray-500 font-medium mb-12">This is to certify that</p>
+                    {/* Recipient Section */}
+                    <div className="flex flex-col items-center w-full">
+                        <h2
+                            className="text-7xl text-neutral-900 mb-6 tracking-tight"
+                            style={{ fontFamily: "'Playfair Display', serif" }}
+                        >
+                            {user.name}
+                        </h2>
 
-                    <h2 className="text-5xl md:text-6xl font-black text-gray-900 mb-8 tracking-tighter">
-                        {user.name}
-                    </h2>
-
-                    <div className="w-32 h-1 bg-gradient-to-r from-transparent via-orange-500 to-transparent mb-8"></div>
-
-                    <p className="text-gray-500 font-medium mb-2 max-w-lg mx-auto leading-relaxed">
-                        has successfully completed all the requirements for the course
-                    </p>
-                    <h3 className="text-2xl md:text-3xl font-black text-gray-800 mb-12 italic">
-                        "{course.title}"
-                    </h3>
-
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-12 w-full mt-10 border-t border-gray-100 pt-16">
-                        <div className="flex flex-col items-center">
-                            <Calendar className="text-orange-500 mb-2" size={20} />
-                            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Date Issued</p>
-                            <p className="font-bold text-gray-900">{new Date(enrollment.updatedAt).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' })}</p>
+                        <div className="flex items-center gap-6 mb-8 w-full max-w-md">
+                            <div className="h-[1px] flex-1 bg-gradient-to-r from-transparent via-orange-500/50 to-transparent" />
+                            <Award className="text-orange-500/80" size={24} />
+                            <div className="h-[1px] flex-1 bg-gradient-to-l from-transparent via-orange-500/50 to-transparent" />
                         </div>
-                        <div className="flex flex-col items-center">
-                            <ShieldCheck className="text-orange-500 mb-2" size={24} />
-                            <div className="w-24 h-px bg-gray-200 mb-2"></div>
-                            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Official Verification</p>
-                            <p className="text-[10px] text-gray-300 font-mono">ID: {enrollment._id.substring(0, 8).toUpperCase()}</p>
+
+                        <p className="text-neutral-500 text-base mb-2 max-w-lg leading-relaxed">
+                            has demonstrated exceptional commitment and proficiency through the successful completion of
+                        </p>
+
+                        <h3
+                            className="text-3xl font-bold text-neutral-800 italic"
+                            style={{ fontFamily: "'Spectral', serif" }}
+                        >
+                            "{course.title}"
+                        </h3>
+                    </div>
+
+                    {/* Signature & Info Section */}
+                    <div className="w-full grid grid-cols-3 gap-8 pt-10 border-t border-neutral-100 items-end">
+                        {/* Column 1: Date */}
+                        <div className="flex flex-col items-center gap-1">
+                            <span className="text-[9px] font-bold text-neutral-400 uppercase tracking-widest">Issuance Date</span>
+                            <span
+                                className="text-base text-neutral-800 font-medium"
+                                style={{ fontFamily: "'Spectral', serif" }}
+                            >
+                                {new Date(enrollment.updatedAt).toLocaleDateString(undefined, {
+                                    year: 'numeric',
+                                    month: 'long',
+                                    day: 'numeric'
+                                })}
+                            </span>
                         </div>
-                        <div className="flex flex-col items-center">
-                            <div className="w-12 h-12 bg-gray-50 rounded-full flex items-center justify-center mb-2">
-                                <User className="text-gray-400" size={20} />
-                            </div>
-                            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Instructor</p>
-                            <p className="font-bold text-gray-900">{course.instructor?.name || 'Authorized Instructor'}</p>
+
+                        {/* Column 2: Verification */}
+                        <div className="flex flex-col items-center gap-1 relative">
+                            <ShieldCheck className="text-orange-600/10 absolute -top-12" size={48} />
+                            <span className="text-[9px] font-bold text-neutral-400 uppercase tracking-widest z-10">Verification ID</span>
+                            <span className="font-mono text-[10px] text-neutral-500 z-10 bg-white/80 px-2">
+                                {enrollment._id.substring(0, 16).toUpperCase()}
+                            </span>
+                        </div>
+
+                        {/* Column 3: Instructor */}
+                        <div className="flex flex-col items-center gap-1">
+                            <span className="text-[9px] font-bold text-neutral-400 uppercase tracking-widest">Lead Instructor</span>
+                            <span
+                                className="text-base text-neutral-800 italic font-medium"
+                                style={{ fontFamily: "'Spectral', serif" }}
+                            >
+                                {course.instructor?.name || 'Authorized Educator'}
+                            </span>
                         </div>
                     </div>
 
-                    {/* Footer decoration */}
-                    <div className="mt-20 flex items-center gap-3">
-                        <div className="flex -space-x-2">
-                            {[1, 2, 3].map(i => (
-                                <div key={i} className="w-8 h-8 rounded-full border-2 border-white bg-gray-100 flex items-center justify-center overflow-hidden">
-                                    <img src={`https://i.pravatar.cc/100?img=${i + 10}`} alt="avatar" />
-                                </div>
-                            ))}
-                        </div>
-                        <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Joined by 12,000+ students</p>
+                    {/* Faint watermark in corner */}
+                    <div className="absolute right-12 bottom-12 opacity-[0.03] pointer-events-none scale-150">
+                        <Award size={100} />
                     </div>
                 </div>
             </div>

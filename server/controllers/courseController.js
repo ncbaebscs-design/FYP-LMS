@@ -37,7 +37,7 @@ const getCourses = asyncHandler(async (req, res) => {
     mongooseQuery = mongooseQuery.limit(Number(limit));
   }
 
-  const courses = await mongooseQuery.lean();
+  const courses = await mongooseQuery.populate('instructor', 'name avatar').lean();
 
   // Add stats and handling popularity sort manually if needed (or we could use aggregation)
   const coursesWithStats = await Promise.all(courses.map(async (course) => {

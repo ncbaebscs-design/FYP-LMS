@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import axios from 'axios';
+import heroImg from '../assets/hero.png'
 import {
     Star,
     Users,
@@ -56,13 +57,13 @@ const HomePage = () => {
         { name: 'Design', icon: <PenTool size={20} />, count: '250+', color: 'bg-indigo-50 text-indigo-600' },
         { name: 'Development', icon: <Code size={20} />, count: '450+', color: 'bg-green-50 text-green-600' },
         { name: 'Marketing', icon: <TrendingUp size={20} />, count: '180+', color: 'bg-orange-50 text-orange-600' },
-        { name: 'IT & Software', icon: <Cpu size={20} />, count: '320+', color: 'bg-blue-50 text-blue-600' },
+        // { name: 'IT & Software', icon: <Cpu size={20} />, count: '320+', color: 'bg-blue-50 text-blue-600' },
         { name: 'Personal Development', icon: <Target size={20} />, count: '210+', color: 'bg-rose-50 text-rose-600' },
         { name: 'Business', icon: <Briefcase size={20} />, count: '380+', color: 'bg-sky-50 text-sky-600' },
-        { name: 'Photography', icon: <Camera size={20} />, count: '120+', color: 'bg-amber-50 text-amber-600' },
-        { name: 'Health & Fitness', icon: <Heart size={20} />, count: '150+', color: 'bg-red-50 text-red-600' },
-        { name: 'Lifestyle', icon: <Globe size={20} />, count: '90+', color: 'bg-emerald-50 text-emerald-600' },
-        { name: 'Music', icon: <Music size={20} />, count: '110+', color: 'bg-purple-50 text-purple-600' },
+        // { name: 'Photography', icon: <Camera size={20} />, count: '120+', color: 'bg-amber-50 text-amber-600' },
+        // { name: 'Health & Fitness', icon: <Heart size={20} />, count: '150+', color: 'bg-red-50 text-red-600' },
+        // { name: 'Lifestyle', icon: <Globe size={20} />, count: '90+', color: 'bg-emerald-50 text-emerald-600' },
+        // { name: 'Music', icon: <Music size={20} />, count: '110+', color: 'bg-purple-50 text-purple-600' },
     ];
 
     if (loading) {
@@ -97,13 +98,12 @@ const HomePage = () => {
                     </div>
                     <div className="relative hidden lg:block">
                         <div className="w-[600px] h-[450px] bg-gray-100 rounded-[3rem] overflow-hidden rotate-3 shadow-2xl relative">
-                            {/* Placeholder for Hero Image */}
+                            {/* Hero Image */}
                             <div className="w-full h-full bg-gray-200 flex items-center justify-center">
-                                <span className="text-gray-400 font-black uppercase tracking-widest text-xl opacity-20">Hero Image Placeholder</span>
+                                <img src={heroImg} alt="Hero" className="w-full h-full object-cover" />
                             </div>
                             <div className="absolute inset-0 bg-gradient-to-tr from-orange-500/10 to-transparent"></div>
                         </div>
-                        {/* Floating elements like in mockup */}
                         <div className="absolute -bottom-10 -left-10 bg-white p-6 rounded-3xl shadow-2xl border border-gray-100 animate-bounce">
                             <div className="flex items-center gap-4">
                                 <div className="w-12 h-12 bg-green-50 rounded-full flex items-center justify-center text-green-500">
@@ -117,7 +117,6 @@ const HomePage = () => {
                         </div>
                     </div>
                 </div>
-                {/* Background Blobs */}
                 <div className="absolute top-0 right-0 w-1/3 h-full bg-orange-50/50 -z-10 rounded-l-[10rem]"></div>
             </div>
 
@@ -161,7 +160,7 @@ const HomePage = () => {
                 </div>
             </div>
 
-            {/* FEATURED COURSES (Horizontal cards) */}
+            {/* FEATURED COURSES */}
             <div className="container mx-auto px-4 py-24">
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                     {bestSelling.slice(0, 2).map((course, idx) => (
@@ -170,7 +169,7 @@ const HomePage = () => {
                                 <img src={course.thumbnail} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" alt={course.title} />
                                 <div className="absolute top-4 left-4 bg-orange-500 text-white text-[10px] font-black px-3 py-1.5 rounded-full uppercase tracking-widest shadow-lg">Featured</div>
                             </div>
-                            <div className="p-8 flex flex-col">
+                            <div className="p-8 flex flex-col flex-1">
                                 <div className="flex justify-between items-start mb-4">
                                     <span className="text-[10px] font-black text-indigo-500 bg-indigo-50 px-2.5 py-1.5 rounded-full uppercase tracking-widest">
                                         {course.category}
@@ -185,7 +184,9 @@ const HomePage = () => {
                                 </div>
                                 <div className="mt-auto flex items-center justify-between gap-4 pt-6 border-t border-gray-50">
                                     <div className="flex items-center gap-3">
-                                        <div className="w-10 h-10 rounded-full bg-gray-100 shrink-0"></div>
+                                        <div className="w-10 h-10 rounded-full bg-gray-100 shrink-0 overflow-hidden">
+                                            {course.instructor?.avatar && <img src={course.instructor.avatar} alt={course.instructor.name} className="w-full h-full object-cover" />}
+                                        </div>
                                         <div>
                                             <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Instructor</p>
                                             <p className="text-sm font-black text-gray-800">{course.instructor?.name || 'Trained Expert'}</p>
@@ -209,7 +210,7 @@ const HomePage = () => {
                 <div className="container mx-auto px-4">
                     <div className="flex items-center justify-between mb-12">
                         <h2 className="text-4xl font-black text-gray-900 tracking-tight">Recently added courses</h2>
-                        <button onClick={() => navigate('/browse?sort=newest')} className="text-orange-500 font-bold">See more</button>
+                        <button onClick={() => navigate('/browse?sort=newest')} className="text-orange-500 font-bold hover:translate-x-1 transition-transform">See more</button>
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
                         {recentlyAdded.map((course) => (
@@ -253,31 +254,7 @@ const HomePage = () => {
                 </div>
             </div>
 
-            {/* TOP INSTRUCTORS */}
-            <div className="container mx-auto px-4 py-24 bg-gray-50">
-                <h2 className="text-4xl font-black text-gray-900 mb-12 text-center tracking-tight">Top instructor of the month</h2>
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-8">
-                    {[1, 2, 3, 4, 5].map((item) => (
-                        <div key={item} className="bg-white p-8 rounded-[2rem] text-center border border-gray-100 shadow-sm hover:shadow-xl transition-all group">
-                            <div className="w-24 h-24 bg-gray-100 rounded-[2rem] mx-auto mb-6 overflow-hidden relative grayscale group-hover:grayscale-0 transition-all">
-                                <div className="w-full h-full bg-gray-200 flex items-center justify-center text-gray-400 opacity-20"><Users size={40} /></div>
-                            </div>
-                            <h3 className="font-black text-gray-900 mb-1">Expert Name {item}</h3>
-                            <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-4">Lead Instructor</p>
-                            <div className="flex justify-center items-center gap-4 text-gray-400">
-                                <div className="flex items-center gap-1">
-                                    <Star size={14} className="text-yellow-400 fill-yellow-400" />
-                                    <span className="text-xs font-black text-gray-900">4.9</span>
-                                </div>
-                                <div className="w-px h-3 bg-gray-200"></div>
-                                <span className="text-[10px] font-black uppercase">15k Students</span>
-                            </div>
-                        </div>
-                    ))}
-                </div>
-            </div>
-
-            {/* TRUSTED COMPANIES */}
+            {/* COMPANIES */}
             <div className="container mx-auto px-4 py-24 text-center">
                 <p className="text-gray-400 font-black text-sm uppercase tracking-[0.3em] mb-12">6.3k trusted companies around the world</p>
                 <div className="flex flex-wrap items-center justify-center gap-12 md:gap-24 opacity-30 grayscale contrast-125">
@@ -287,7 +264,7 @@ const HomePage = () => {
                 </div>
             </div>
 
-            {/* CTA SECTION */}
+            {/* FINAL CTA */}
             <div className="bg-gray-900 py-32 mt-24">
                 <div className="container mx-auto px-4 text-center">
                     <h2 className="text-5xl md:text-6xl font-black text-white mb-8 tracking-tighter leading-tight">

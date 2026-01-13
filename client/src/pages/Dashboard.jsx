@@ -14,7 +14,8 @@ import {
     Settings as SettingsIcon,
     Camera,
     Loader2,
-    Save
+    Save,
+    Star
 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 
@@ -26,6 +27,11 @@ const Dashboard = () => {
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
     const [activeTab, setActiveTab] = useState('courses');
+    const [isRateModalOpen, setIsRateModalOpen] = useState(false);
+    const [selectedCourse, setSelectedCourse] = useState(null);
+    const [rating, setRating] = useState(5);
+    const [comment, setComment] = useState('');
+    const [submittingRating, setSubmittingRating] = useState(false);
 
     // Profile State
     const [name, setName] = useState(user?.name || '');
@@ -85,6 +91,31 @@ const Dashboard = () => {
             toast.success('Profile updated successfully!');
         } catch (error) {
             toast.error(error || 'Failed to update profile');
+        }
+    };
+
+    const handleSubmitRating = async (e) => {
+        e.preventDefault();
+        if (!selectedCourse) return;
+
+        setSubmittingRating(true);
+        try {
+            await axios.post(`/api/reviews/${selectedCourse._id}`, {
+                rating,
+                comment
+            });
+            toast.success('Thank you for your review!');
+            setIsRateModalOpen(false);
+            setComment('');
+            setRating(5);
+            // Refresh enrollments to show "View Certificate"
+            const { data } = await axios.get('/api/progress/my-enrollments');
+            setEnrollments(data);
+        } catch (error) {
+            console.error('Rating failed:', error);
+            toast.error(error.response?.data?.message || 'Failed to submit review');
+        } finally {
+            setSubmittingRating(false);
         }
     };
 
@@ -241,16 +272,26 @@ const Dashboard = () => {
                                         </div>
 
                                         <button
-                                            onClick={() => navigate(`/course/${enrollment.course._id}/player`)}
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                if (enrollment.isCompleted && !enrollment.isRated) {
+                                                    setSelectedCourse(enrollment.course);
+                                                    setIsRateModalOpen(true);
+                                                } else if (enrollment.isCompleted && enrollment.isRated) {
+                                                    navigate(`/course/${enrollment.course._id}/certificate`);
+                                                } else {
+                                                    navigate(`/course/${enrollment.course._id}/player`);
+                                                }
+                                            }}
                                             className={`w-full font-bold py-3 rounded-xl transition-all transform active:scale-95 flex items-center justify-center gap-2 ${enrollment.isCompleted && enrollment.isRated
-                                                    ? 'bg-green-50 text-green-600 hover:bg-green-500 hover:text-white'
-                                                    : enrollment.isCompleted && !enrollment.isRated
-                                                        ? 'bg-orange-50 text-orange-600 hover:bg-orange-500 hover:text-white shadow-lg shadow-orange-100'
-                                                        : 'bg-orange-50 text-orange-600 hover:bg-orange-500 hover:text-white'
+                                                ? 'bg-green-50 text-green-600 hover:bg-green-500 hover:text-white'
+                                                : enrollment.isCompleted && !enrollment.isRated
+                                                    ? 'bg-orange-50 text-orange-600 hover:bg-orange-500 hover:text-white shadow-lg shadow-orange-100'
+                                                    : 'bg-orange-50 text-orange-600 hover:bg-orange-500 hover:text-white'
                                                 }`}
                                         >
                                             {enrollment.isCompleted && enrollment.isRated ? (
-                                                <div className="flex items-center gap-2" onClick={(e) => { e.stopPropagation(); navigate(`/course/${enrollment.course._id}/certificate`); }}>
+                                                <div className="flex items-center gap-2">
                                                     View Certificate <CheckCircle size={18} />
                                                 </div>
                                             ) : enrollment.isCompleted && !enrollment.isRated ? (
@@ -266,6 +307,68 @@ const Dashboard = () => {
                                 </div>
                             ))}
                         </div>
+
+                        {/* Rating Modal */}
+                        {isRateModalOpen && (
+                            <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-300">
+                                <div className="bg-white rounded-[2.5rem] w-full max-w-lg overflow-hidden shadow-2xl animate-in zoom-in-95 duration-300">
+                                    <div className="p-8 border-b border-gray-50 flex justify-between items-center">
+                                        <h3 className="text-xl font-black text-gray-900">Rate this Course</h3>
+                                        <button onClick={() => setIsRateModalOpen(false)} className="text-gray-400 hover:text-gray-900 transition-colors">
+                                            <Loader2 size={24} className="rotate-45" />
+                                        </button>
+                                    </div>
+                                    <form onSubmit={handleSubmitRating} className="p-8 space-y-8">
+                                        <div className="text-center">
+                                            <p className="text-sm font-bold text-gray-400 uppercase tracking-widest mb-4">How was your experience?</p>
+                                            <div className="flex justify-center gap-2">
+                                                {[1, 2, 3, 4, 5].map((star) => (
+                                                    <button
+                                                        key={star}
+                                                        type="button"
+                                                        onClick={() => setRating(star)}
+                                                        className={`transition-all ${rating >= star ? 'text-yellow-400 scale-125' : 'text-gray-200 hover:text-yellow-200'}`}
+                                                    >
+                                                        <Star size={40} fill={rating >= star ? "currentColor" : "none"} strokeWidth={2.5} />
+                                                    </button>
+                                                ))}
+                                            </div>
+                                            <p className="mt-4 font-black text-gray-900 capitalize">
+                                                {rating === 5 ? 'Excellent!' : rating === 4 ? 'Great!' : rating === 3 ? 'Good' : rating === 2 ? 'Poor' : 'Awful'}
+                                            </p>
+                                        </div>
+
+                                        <div className="space-y-3">
+                                            <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-2">Written Review (Optional)</label>
+                                            <textarea
+                                                value={comment}
+                                                onChange={(e) => setComment(e.target.value)}
+                                                placeholder="Write your review here..."
+                                                className="w-full p-4 bg-gray-50 border-transparent rounded-2xl font-bold text-gray-900 focus:bg-white focus:border-orange-500 outline-none transition-all ring-1 ring-gray-100 min-h-[120px]"
+                                            />
+                                        </div>
+
+                                        <div className="flex gap-4">
+                                            <button
+                                                type="button"
+                                                onClick={() => setIsRateModalOpen(false)}
+                                                className="flex-1 py-4 rounded-xl font-black text-sm text-gray-400 hover:text-gray-900 transition-colors"
+                                            >
+                                                Skip for now
+                                            </button>
+                                            <button
+                                                type="submit"
+                                                disabled={submittingRating}
+                                                className="flex-[2] bg-orange-500 text-white py-4 rounded-2xl font-black text-sm hover:bg-gray-900 transition-all shadow-xl shadow-orange-100 disabled:opacity-50 flex items-center justify-center gap-2"
+                                            >
+                                                {submittingRating ? <Loader2 size={18} className="animate-spin" /> : <CheckCircle size={18} />}
+                                                SUBMIT REVIEW
+                                            </button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        )}
 
                         {enrollments.length === 0 && (
                             <div className="bg-white rounded-3xl p-12 text-center shadow-sm border border-dashed border-gray-300">
