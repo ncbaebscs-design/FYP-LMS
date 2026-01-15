@@ -120,7 +120,7 @@ const createCourse = asyncHandler(async (req, res) => {
     welcomeMessage,
     congratulationsMessage,
     additionalInstructors,
-    isPublished: isPublished || false,
+    isPublished: isPublished !== undefined ? isPublished : true,
   });
 
   const createdCourse = await course.save();

@@ -190,11 +190,11 @@ const CreateCourse = () => {
                 ...advanceData,
                 curriculum,
                 ...publishData,
-                isPublished: false // Submit for review
+                isPublished: true // Directly publish
             };
 
             await axios.post('/api/courses', courseData);
-            alert('Course submitted for review successfully!');
+            alert('Course published successfully!');
             navigate('/instructor/dashboard');
         } catch (error) {
             console.error('Submission failed', error);
@@ -775,7 +775,7 @@ const CreateCourse = () => {
                                 disabled={loading}
                                 className="px-8 py-3 bg-orange-500 text-white rounded font-bold hover:bg-orange-600 flex items-center gap-2 disabled:bg-gray-400"
                             >
-                                {loading ? <Loader2 className="animate-spin" size={20} /> : 'Submit For Review'}
+                                {loading ? <Loader2 className="animate-spin" size={20} /> : 'Publish Course'}
                             </button>
                         </div>
                     </div>
