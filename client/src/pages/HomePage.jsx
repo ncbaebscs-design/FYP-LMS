@@ -41,9 +41,13 @@ const HomePage = () => {
                     axios.get('/api/courses?sort=newest&limit=6')
                 ]);
 
-                setBestSelling(bestRes.data);
-                setRecentlyAdded(newestRes.data);
-                setFeatured(bestRes.data.slice(0, 4)); // Use top 4 as featured for now
+                if (Array.isArray(bestRes.data)) {
+                    setBestSelling(bestRes.data);
+                    setFeatured(bestRes.data.slice(0, 4));
+                }
+                if (Array.isArray(newestRes.data)) {
+                    setRecentlyAdded(newestRes.data);
+                }
                 setLoading(false);
             } catch (error) {
                 console.error('Error fetching homepage data:', error);
@@ -153,7 +157,7 @@ const HomePage = () => {
                         </button>
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-                        {bestSelling.map((course) => (
+                        {Array.isArray(bestSelling) && bestSelling.map((course) => (
                             <CourseCard key={course._id} course={course} navigate={navigate} />
                         ))}
                     </div>
@@ -213,7 +217,7 @@ const HomePage = () => {
                         <button onClick={() => navigate('/browse?sort=newest')} className="text-orange-500 font-bold hover:translate-x-1 transition-transform">See more</button>
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-                        {recentlyAdded.map((course) => (
+                        {Array.isArray(recentlyAdded) && recentlyAdded.map((course) => (
                             <CourseCard key={course._id} course={course} navigate={navigate} />
                         ))}
                     </div>
