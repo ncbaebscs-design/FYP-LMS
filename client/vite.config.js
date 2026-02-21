@@ -11,11 +11,11 @@ export default defineConfig({
   server: {
     proxy: {
       '/api': {
-        target: 'http://localhost:5000',
+        target: 'https://fyp-lms-h8i1.onrender.com',
         changeOrigin: true,
       },
       '/uploads': {
-        target: 'http://localhost:5000',
+        target: 'https://fyp-lms-h8i1.onrender.com',
         changeOrigin: true,
       }
     }
