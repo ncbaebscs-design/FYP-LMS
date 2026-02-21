@@ -222,7 +222,7 @@ const CreateCourse = () => {
 
             await axios.post('/api/courses', courseData);
             alert('Course published successfully!');
-            navigate('/instructor/dashboard');
+            navigate('/instructor/my-courses');
         } catch (error) {
             console.error('Submission failed', error);
             alert(error.response?.data?.message || 'Submission failed');
@@ -273,10 +273,7 @@ const CreateCourse = () => {
                     <div className="space-y-6">
                         <div className="flex justify-between items-center">
                             <h2 className="text-xl font-semibold">Basic Information</h2>
-                            <div className="space-x-2">
-                                <button className="px-4 py-2 bg-orange-100 text-orange-500 rounded font-medium hover:bg-orange-200">Save</button>
-                                <button className="px-4 py-2 bg-orange-100 text-orange-500 rounded font-medium hover:bg-orange-200">Save & Preview</button>
-                            </div>
+
                         </div>
 
                         <div>
@@ -553,10 +550,7 @@ const CreateCourse = () => {
                     <div className="space-y-8">
                         <div className="flex justify-between items-center border-b pb-4">
                             <h2 className="text-xl font-semibold">Course Curriculum</h2>
-                            <div className="space-x-2">
-                                <button className="px-4 py-2 bg-orange-100 text-orange-500 rounded font-medium hover:bg-orange-200">Save</button>
-                                <button className="px-4 py-2 bg-orange-100 text-orange-500 rounded font-medium hover:bg-orange-200">Save & Preview</button>
-                            </div>
+
                         </div>
 
                         <div className="space-y-6">
@@ -746,10 +740,7 @@ const CreateCourse = () => {
                     <div className="space-y-8">
                         <div className="flex justify-between items-center border-b pb-4">
                             <h2 className="text-xl font-semibold">Publish Course</h2>
-                            <div className="space-x-2">
-                                <button className="px-4 py-2 bg-orange-100 text-orange-500 rounded font-medium hover:bg-orange-200">Save</button>
-                                <button className="px-4 py-2 bg-orange-100 text-orange-500 rounded font-medium hover:bg-orange-200">Save & Preview</button>
-                            </div>
+
                         </div>
 
                         <div className="space-y-6">
