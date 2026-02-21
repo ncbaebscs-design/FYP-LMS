@@ -61,6 +61,7 @@ function App() {
             <Route path="/instructor" element={<InstructorLayout />}>
               <Route index element={<InstructorDashboard />} />
               <Route path="create-course" element={<CreateCourse />} />
+              <Route path="edit-course/:id" element={<CreateCourse />} />
               <Route path="my-courses" element={<MyCourses />} />
               <Route path="earnings" element={<InstructorEarnings />} />
               <Route path="settings" element={<InstructorSettings />} />

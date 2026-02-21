@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { Search, ChevronDown, MoreVertical, Star, Users, ArrowLeft, ArrowRight } from 'lucide-react';
+import { toast } from 'react-hot-toast';
 
 const MyCourses = () => {
     const [courses, setCourses] = useState([]);
@@ -103,12 +104,27 @@ const MyCourses = () => {
                             {activeAction === course._id && (
                                 <div className="absolute top-10 right-2 w-32 bg-white rounded-lg shadow-xl border border-gray-100 py-1 z-10 animate-in fade-in zoom-in-95 duration-100">
                                     <button
-                                        onClick={() => navigate(`/instructor/course/edit/${course._id}`)}
+                                        onClick={() => navigate(`/instructor/edit-course/${course._id}`)}
                                         className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-orange-50 hover:text-orange-600"
                                     >
                                         Edit Course
                                     </button>
-                                    <button className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50">
+                                    <button
+                                        onClick={async () => {
+                                            if (window.confirm('Are you sure you want to delete this course?')) {
+                                                try {
+                                                    await axios.delete(`/api/courses/${course._id}`);
+                                                    setCourses(courses.filter(c => c._id !== course._id));
+                                                    toast.success('Course deleted successfully');
+                                                } catch (error) {
+                                                    console.error('Delete failed', error);
+                                                    toast.error('Failed to delete course');
+                                                }
+                                            }
+                                            setActiveAction(null);
+                                        }}
+                                        className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50"
+                                    >
                                         Delete Course
                                     </button>
                                 </div>

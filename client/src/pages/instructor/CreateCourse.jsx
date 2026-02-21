@@ -1,11 +1,13 @@
-import { useState } from 'react';
-import { GripVertical, Pencil, Trash2, Plus, ChevronDown, Video, FileText, AlignLeft, File, Search, X, Upload, Loader2, Sparkles, Wand2 } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { GripVertical, Pencil, Trash2, Plus, ChevronDown, Video, FileText, AlignLeft, File, Search, X, Upload, Loader2, Sparkles, Wand2, DollarSign } from 'lucide-react';
 import axios from 'axios';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
 
 const CreateCourse = () => {
     const navigate = useNavigate();
+    const { id: courseId } = useParams();
+    const isEditMode = !!courseId;
     const [activeTab, setActiveTab] = useState('basic');
     const [loading, setLoading] = useState(false);
     const [uploading, setUploading] = useState({
@@ -25,7 +27,8 @@ const CreateCourse = () => {
         language: '',
         subtitleLanguage: '',
         level: '',
-        duration: { value: 0, unit: 'Hour' }
+        duration: { value: 0, unit: 'Hour' },
+        price: ''
     });
 
     // State for Advance Information
@@ -51,6 +54,55 @@ const CreateCourse = () => {
         congratulationsMessage: '',
         additionalInstructors: []
     });
+
+    useEffect(() => {
+        if (isEditMode) {
+            const fetchCourseData = async () => {
+                setLoading(true);
+                try {
+                    const { data } = await axios.get(`/api/courses/${courseId}`);
+                    // Mapping data to state
+                    setBasicData({
+                        title: data.title || '',
+                        subtitle: data.subtitle || '',
+                        category: data.category || '',
+                        subCategory: data.subCategory || '',
+                        topic: data.topic || '',
+                        language: data.language || '',
+                        subtitleLanguage: data.subtitleLanguage || '',
+                        level: data.level || '',
+                        duration: data.duration || { value: 0, unit: 'Hour' },
+                        price: data.price || ''
+                    });
+
+                    setAdvanceData({
+                        thumbnail: data.thumbnail || null,
+                        trailer: data.trailer || null,
+                        description: data.description || '',
+                        objectives: data.objectives?.length > 0 ? data.objectives : ['', '', '', ''],
+                        targetAudience: data.targetAudience?.length > 0 ? data.targetAudience : ['', '', '', ''],
+                        requirements: data.requirements?.length > 0 ? data.requirements : ['', '', '', '']
+                    });
+
+                    if (data.curriculum && data.curriculum.length > 0) {
+                        setCurriculum(data.curriculum);
+                    }
+
+                    setPublishData({
+                        welcomeMessage: data.welcomeMessage || '',
+                        congratulationsMessage: data.congratulationsMessage || '',
+                        additionalInstructors: data.additionalInstructors || []
+                    });
+                } catch (error) {
+                    console.error('Error fetching course data:', error);
+                    toast.error('Failed to load course data');
+                } finally {
+                    setLoading(false);
+                }
+            };
+            fetchCourseData();
+        }
+    }, [isEditMode, courseId]);
 
     const addSection = () => {
         setCurriculum([...curriculum, { id: Date.now(), title: 'New Section', lectures: [] }]);
@@ -220,8 +272,13 @@ const CreateCourse = () => {
                 isPublished: true // Directly publish
             };
 
-            await axios.post('/api/courses', courseData);
-            alert('Course published successfully!');
+            if (isEditMode) {
+                await axios.put(`/api/courses/${courseId}`, courseData);
+                toast.success('Course updated successfully!');
+            } else {
+                await axios.post('/api/courses', courseData);
+                toast.success('Course published successfully!');
+            }
             navigate('/instructor/my-courses');
         } catch (error) {
             console.error('Submission failed', error);
@@ -234,7 +291,7 @@ const CreateCourse = () => {
     return (
         <div>
             <div className="flex justify-between items-center mb-6">
-                <h1 className="text-2xl font-bold">Create a new course</h1>
+                <h1 className="text-2xl font-bold">{isEditMode ? 'Edit' : 'Create a new'} course</h1>
             </div>
 
             <div className="bg-white rounded-lg shadow p-6">
@@ -395,6 +452,22 @@ const CreateCourse = () => {
                                         <option>Min</option>
                                     </select>
                                 </div>
+                            </div>
+                            <div>
+                                <label className="block text-gray-700 font-medium mb-2">Price ($)</label>
+                                <div className="relative">
+                                    <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
+                                        <DollarSign size={18} />
+                                    </div>
+                                    <input
+                                        type="number"
+                                        placeholder="0.00"
+                                        className="w-full border rounded-lg pl-10 pr-4 py-3 focus:outline-none focus:ring-2 focus:ring-orange-500"
+                                        value={basicData.price}
+                                        onChange={(e) => setBasicData({ ...basicData, price: e.target.value })}
+                                    />
+                                </div>
+                                <p className="text-[10px] text-gray-400 mt-1 uppercase tracking-widest font-bold">Set 0 for a free course</p>
                             </div>
                         </div>
 
@@ -807,7 +880,7 @@ const CreateCourse = () => {
                                 disabled={loading}
                                 className="px-8 py-3 bg-orange-500 text-white rounded font-bold hover:bg-orange-600 flex items-center gap-2 disabled:bg-gray-400"
                             >
-                                {loading ? <Loader2 className="animate-spin" size={20} /> : 'Publish Course'}
+                                {loading ? <Loader2 className="animate-spin" size={20} /> : (isEditMode ? 'Update Course' : 'Publish Course')}
                             </button>
                         </div>
                     </div>
