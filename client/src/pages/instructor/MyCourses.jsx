@@ -181,7 +181,7 @@ const MyCourses = () => {
                     <h3 className="text-lg font-bold text-gray-800">No courses found</h3>
                     <p className="text-gray-500 text-sm mt-1">Try adjusting your search or filters</p>
                     <button
-                        onClick={() => navigate('/instructor/course/create')}
+                        onClick={() => navigate('/instructor/create-course')}
                         className="mt-6 px-6 py-2.5 bg-orange-500 text-white font-bold rounded-lg hover:bg-orange-600 transition-colors shadow-lg shadow-orange-500/20"
                     >
                         Create New Course
