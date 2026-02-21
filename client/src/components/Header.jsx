@@ -96,14 +96,11 @@ const Header = () => {
                 {/* Right Side Actions */}
                 <div className="flex items-center gap-4 shrink-0">
                     <div className="hidden xl:flex items-center gap-1 mr-4 border-r border-gray-100 pr-4">
-                        {!isExcludedPath && (
+                        {isExcludedPath && (
                             <button className="p-2 text-gray-400 hover:text-orange-500 transition-all"><Search size={20} /></button>
                         )}
-                        <button className="p-2 text-gray-400 hover:text-orange-500 transition-all relative">
-                            <Heart size={20} />
-                            {wishlistItems.length > 0 && <span className="absolute top-1 right-1 w-2 h-2 bg-orange-500 rounded-full border border-white"></span>}
-                        </button>
-                        <button className="p-2 text-gray-400 hover:text-orange-500 transition-all relative">
+
+                        <button onClick={() => navigate('/cart')} className="p-2 text-gray-400 hover:text-orange-500 transition-all relative">
                             <ShoppingCart size={20} />
                             {cartItems.length > 0 && <span className="absolute top-1 right-1 w-2 h-2 bg-orange-500 rounded-full border border-white"></span>}
                         </button>
