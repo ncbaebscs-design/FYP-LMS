@@ -33,6 +33,7 @@ const instructorRoutes = require('./routes/instructorRoutes');
 const adminRoutes = require('./routes/adminRoutes');
 const wishlistRoutes = require('./routes/wishlistRoutes');
 const cartRoutes = require('./routes/cartRoutes');
+const aiRoutes = require('./routes/aiRoutes');
 const notificationRoutes = require('./routes/notificationRoutes');
 const reviewRoutes = require('./routes/reviewRoutes');
 const { notFound, errorHandler } = require('./middleware/errorMiddleware');
@@ -50,6 +51,7 @@ app.use('/api/wishlist', wishlistRoutes);
 app.use('/api/cart', cartRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/reviews', reviewRoutes);
+app.use('/api/ai', aiRoutes);
 
 const uploadsPath = path.join(__dirname, '/uploads');
 app.use('/uploads', express.static(uploadsPath));

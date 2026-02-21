@@ -1,7 +1,8 @@
 import { useState } from 'react';
-import { GripVertical, Pencil, Trash2, Plus, ChevronDown, Video, FileText, AlignLeft, File, Search, X, Upload, Loader2 } from 'lucide-react';
+import { GripVertical, Pencil, Trash2, Plus, ChevronDown, Video, FileText, AlignLeft, File, Search, X, Upload, Loader2, Sparkles, Wand2 } from 'lucide-react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
+import { toast } from 'react-hot-toast';
 
 const CreateCourse = () => {
     const navigate = useNavigate();
@@ -12,6 +13,7 @@ const CreateCourse = () => {
         trailer: false,
         lecture: {}
     });
+    const [aiLoading, setAiLoading] = useState(false);
 
     // State for Basic Information
     const [basicData, setBasicData] = useState({
@@ -179,6 +181,31 @@ const CreateCourse = () => {
             } else {
                 setUploading(prev => ({ ...prev, [type]: false }));
             }
+        }
+    };
+
+    const generateAIDescription = async () => {
+        if (!basicData.title) {
+            toast.error('Please enter a course title first to generate a description');
+            setActiveTab('basic');
+            return;
+        }
+
+        setAiLoading(true);
+        try {
+            const { data } = await axios.post('/api/ai/generate-description', {
+                title: basicData.title,
+                category: basicData.category
+            }, { withCredentials: true });
+
+            setAdvanceData(prev => ({ ...prev, description: data.description }));
+            toast.success('Description generated successfully!');
+        } catch (error) {
+            console.error('AI Generation failed', error);
+            const message = error.response?.data?.message || 'AI Generation failed';
+            toast.error(message);
+        } finally {
+            setAiLoading(false);
         }
     };
 
@@ -427,7 +454,21 @@ const CreateCourse = () => {
 
                         {/* Description */}
                         <div>
-                            <h3 className="text-gray-700 font-medium mb-2">Course Descriptions</h3>
+                            <div className="flex justify-between items-center mb-2">
+                                <h3 className="text-gray-700 font-medium">Course Descriptions</h3>
+                                <button
+                                    onClick={generateAIDescription}
+                                    disabled={aiLoading}
+                                    className="flex items-center gap-2 px-3 py-1.5 bg-purple-50 text-purple-600 rounded-lg text-xs font-black uppercase tracking-widest hover:bg-purple-100 transition-all disabled:opacity-50"
+                                >
+                                    {aiLoading ? (
+                                        <Loader2 className="animate-spin" size={14} />
+                                    ) : (
+                                        <Sparkles size={14} className="fill-purple-600/20" />
+                                    )}
+                                    {aiLoading ? 'Generating...' : 'Generate with AI'}
+                                </button>
+                            </div>
                             <textarea
                                 className="w-full border rounded-lg p-4 h-40 focus:outline-none focus:ring-2 focus:ring-orange-500"
                                 placeholder="Enter your course description..."
